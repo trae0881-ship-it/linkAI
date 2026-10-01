@@ -1,0 +1,5 @@
+# Automatic HTTPS. Point an A record for APP_DOMAIN at the VPS IP first.
+{$APP_DOMAIN} {
+    encode gzip
+    reverse_proxy app:8080
+}

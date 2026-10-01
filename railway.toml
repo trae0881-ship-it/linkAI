@@ -1,0 +1,24 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+# Default service (this file's top-level [deploy]) is the WEB process:
+# nginx + php-fpm + horizon all in one container via supervisord, which
+# is the simplest correct deploy for launch. Once traffic/queue volume
+# justifies independent scaling, split into three Railway services from
+# this same repo/image, overriding startCommand per service as shown
+# below (create each as a separate Railway service pointed at this repo).
+
+[deploy]
+startCommand = "/entrypoint.sh supervisord -c /etc/supervisor/conf.d/supervisord.conf"
+healthcheckPath = "/up"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+
+# --- Recommended split at scale (separate Railway services) ---
+# Service "web":       startCommand = "/entrypoint.sh supervisord -c /etc/supervisor/conf.d/web-only.conf"
+# Service "worker":    startCommand = "/entrypoint.sh php artisan horizon"
+# Service "scheduler": startCommand = "/entrypoint.sh php artisan schedule:work"
+# All three share this Dockerfile/image and the same environment
+# variables (DB/Redis/S3/provider keys) — only startCommand differs.
